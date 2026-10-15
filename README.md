@@ -83,10 +83,6 @@ Useful flags: `--points`, `--steps`, `--dt`, `--walkers`, `--barrier`, `--seed`,
 - When parallelism helps (large grids / walker ensembles) vs when overhead wins
 - Reproducible smoke CI on every push
 
-## License
-
-[MIT](LICENSE) © Juan David Prada Malagon
-
 ---
 
 ### GitHub repository naming
