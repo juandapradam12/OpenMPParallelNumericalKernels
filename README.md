@@ -94,6 +94,6 @@ Useful flags: `--points`, `--steps`, `--dt`, `--walkers`, `--barrier`, `--seed`,
 Suggested repository name: **`openmp-parallel-numerical-kernels`**  
 Suggested GitHub description (About blurb):
 
-> Portfolio case study: OpenMP parallelization of 1D advection (finite differences) and Monte Carlo random walks, with correctness checks, strong scaling, and reproducible benchmarks.
+> Finite-difference advection and Monte Carlo random walks — serial vs shared-memory parallel. OpenMP kernels with correctness checks, strong scaling, and reproducible benchmarks.
 
 Rename under GitHub → Settings → General if the remote still uses the legacy homework title.
