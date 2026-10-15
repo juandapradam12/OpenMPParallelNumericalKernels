@@ -23,7 +23,7 @@ Pulse transport under the upwind scheme. Serial and OpenMP frames match to machi
 
 ![1D advection — serial vs OpenMP](figures/advection.png)
 
-Hitting-time distribution for \(5\times10^5\) walkers:
+Hitting-time distribution for $5 \times 10^5$ walkers:
 
 ![Random-walk hitting times — serial vs OpenMP](figures/random_walk.png)
 
@@ -31,7 +31,7 @@ Strong scaling on 1–4 threads. Random walks and a large advection grid scale c
 
 ![Strong scaling — speedup and efficiency](figures/scaling.png)
 
-Example 4-thread speedups from `results/scaling.example.csv`: random walk ≈ **3.9×**, large advection (\(N_x=2\times10^5\)) ≈ **4.0×**.
+Example 4-thread speedups from `results/scaling.example.csv`: random walk ≈ **3.9×**, large advection ($N_x = 2 \times 10^5$) ≈ **4.0×**.
 
 ---
 
@@ -39,7 +39,7 @@ Example 4-thread speedups from `results/scaling.example.csv`: random walk ≈ **
 
 | Kernel | Method | Parallel strategy |
 | --- | --- | --- |
-| Linear advection \(\partial_t u + c\partial_x u = 0\) | First-order upwind FD | OpenMP over space; time remains sequential |
+| Linear advection $\partial_t u + c\,\partial_x u = 0$ | First-order upwind FD | OpenMP over space; time remains sequential |
 | Absorbing-barrier random walk | Monte Carlo ensemble | OpenMP over walkers + per-walker `erand48` |
 
 ```
