@@ -1,0 +1,10 @@
+problem,mode,threads,metric,value
+advection_small,serial,1,wall_seconds,0.000253
+advection_small,omp,4,wall_seconds,0.001562
+random_walk,serial,1,wall_seconds,0.676222
+random_walk,omp,4,wall_seconds,0.170866
+advection_large,serial,1,wall_seconds,0.039854
+advection_large,omp,2,wall_seconds,0.019393
+random_walk_scale,omp,2,wall_seconds,0.340272
+advection_large,omp,4,wall_seconds,0.009877
+random_walk_scale,omp,4,wall_seconds,0.170799

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-pip python3-venv
+
+      - name: Install Python deps
+        run: pip3 install --user -r requirements.txt
+
+      - name: Build
+        run: make
+
+      - name: Smoke benchmark + correctness
+        env:
+          OMP_NUM_THREADS: 2
+          MAX_THREADS: 2
+        run: ./scripts/run_benchmark.sh --smoke
