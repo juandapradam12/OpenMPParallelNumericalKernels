@@ -38,4 +38,8 @@ benchmark: run
 
 clean:
 	rm -rf $(BUILD) $(BIN)
-	rm -f results/*.dat results/*.csv figures/*.png figures/*.pdf
+	rm -f results/*.dat results/timings.csv results/scaling.csv
+	rm -f results/large/*.dat
+	rm -f figures/advection.png figures/advection.pdf
+	rm -f figures/random_walk.png figures/random_walk.pdf
+	rm -f figures/scaling.png figures/scaling.pdf

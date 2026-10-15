@@ -60,9 +60,10 @@ until \(|x| \ge B\) (default \(B = 10\)). The recorded observable is the hitting
 ```
 include/          Public headers (config, state, API)
 src/              Solver cores + thin CLI entry points
-scripts/          Benchmark orchestration and plotting
-results/          Numeric outputs and timing CSV
+scripts/          Benchmark, correctness checks, plotting
+results/          Numeric outputs, timings, scaling CSVs
 figures/          Generated plots
+.github/          CI smoke workflow
 docs/             Case-study notes
 ```
 
@@ -72,10 +73,11 @@ Responsibilities are separated as follows:
 | --- | --- |
 | `advection.c` / `random_walk.c` | Domain logic, allocation, OpenMP regions |
 | `main_*.c` | Argument parsing, I/O paths, reporting |
-| `scripts/run_benchmark.sh` | End-to-end serial/OMP comparison |
-| `scripts/plot_results.py` | Result visualization |
+| `scripts/run_benchmark.sh` | Fidelity run + strong-scaling sweep |
+| `scripts/check_correctness.py` | Serial/OMP equality + peak-position smoke check |
+| `scripts/plot_results.py` | Field, histogram, and scaling figures |
 
-Defaults preserve the original experiment sizing so historical results remain comparable, while CLI flags expose grid size, walker count, barrier, seed, and output directory.
+Defaults preserve the original experiment sizing for fidelity. Scaling uses a larger advection grid and a thread sweep (`1, 2, 4, …` up to `MAX_THREADS`).
 
 ## Correctness notes relative to the legacy code
 
@@ -87,8 +89,33 @@ The original flat sources had several issues addressed here:
 - The full space–time field was retained even though only a few frames were plotted.
 - Resources were never released.
 
+Automated checks assert bit-identical serial/OpenMP outputs for both kernels (same seeds) and that the advected peak sits near \(x \approx c\,t\).
+
+## Experiments
+
+| Experiment | Purpose | Size |
+| --- | --- | --- |
+| `advection_small` | Visual fidelity + overhead demo | \(N_x=1000\), \(N_t=700\) |
+| `advection_large` | Strong scaling where OpenMP helps | \(N_x=2\times10^5\), \(N_t=400\) |
+| `random_walk` | Histogram fidelity + scaling | \(5\times10^5\) walkers |
+
+## Example results
+
+Representative numbers from a 4-thread run (`results/scaling.example.csv`; machine-dependent):
+
+| Problem | Threads | Wall time (s) | Speedup | Efficiency |
+| --- | --- | --- | --- | --- |
+| random_walk | 1 | 0.673 | 1.00 | 1.00 |
+| random_walk | 2 | 0.340 | 1.98 | 0.99 |
+| random_walk | 4 | 0.171 | 3.94 | 0.99 |
+| advection_large | 1 | 0.040 | 1.00 | 1.00 |
+| advection_large | 2 | 0.019 | 2.06 | 1.03 |
+| advection_large | 4 | 0.010 | 4.04 | 1.01 |
+
+The small fidelity advection grid (\(N_x=1000\)) is intentionally kept: on the same host it was **slower** under OpenMP (≈0.0002 s serial vs ≈0.0015 s on 4 threads), which is the overhead lesson next to the large-grid win. Large-grid runs scale \(\Delta t\) with \(\Delta x\) so the CFL number stays ≈ 0.25.
+
 ## How to read the results
 
 - **Advection plots** should show the initial pulse transported to the right, with numerical diffusion from the first-order upwind scheme. Serial and OpenMP frames should match within floating-point noise.
-- **Walk histograms** should be statistically consistent between serial and OpenMP runs when seeds are equivalent.
-- **Timing CSV** (`results/timings.csv`) reports wall-clock seconds. Random walks typically show clearer speedup than advection: the ensemble has no time-level dependency and more work per parallel task. On the default advection grid (\(N_x = 1000\)), OpenMP can be slower than serial because thread overhead dominates a tiny inner loop — a useful illustration of when shared-memory parallelism pays off.
+- **Walk histograms** should match exactly between serial and OpenMP when walker seeds are equivalent.
+- **Scaling figure** (`figures/scaling.png`) shows speedup and parallel efficiency versus thread count. Random walks scale cleanly; large-grid advection improves once the spatial loop is large enough; the small fidelity grid often slows down under OpenMP because thread startup exceeds useful work.

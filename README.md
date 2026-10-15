@@ -2,7 +2,10 @@
 
 **1D advection (finite differences) and Monte Carlo random walks with OpenMP**
 
-Portfolio case study in shared-memory parallel scientific computing: two complementary kernels, a small C11 library layout, reproducible serial-vs-OpenMP benchmarks, and visualization of the physical / statistical outputs.
+Portfolio case study in shared-memory parallel scientific computing: two complementary kernels, a small C11 library layout, serial-vs-OpenMP correctness checks, strong-scaling measurements, and visualization of physical / statistical outputs.
+
+> Suggested GitHub repository name: `parallel-numerical-kernels`  
+> (the current remote may still use the legacy homework name; rename under GitHub → Settings → General.)
 
 ---
 
@@ -13,20 +16,21 @@ Portfolio case study in shared-memory parallel scientific computing: two complem
 | Linear advection \(\partial_t u + c\partial_x u = 0\) | First-order upwind FD | OpenMP over space; time remains sequential |
 | Absorbing-barrier random walk | Monte Carlo ensemble | OpenMP over independent walkers + per-walker RNG |
 
-Default experiment sizes match the original study (\(N_x = 1000\), \(N_t = 700\), \(5\times10^5\) walkers) so the case remains comparable while the implementation is production-shaped: clear modules, CLI configuration, CFL awareness, and measured wall time.
+The default fidelity case keeps the original study sizing (\(N_x = 1000\), \(N_t = 700\), \(5\times10^5\) walkers). A second **large-grid advection** case (\(N_x = 2\times10^5\), \(N_t = 400\)) is used for strong scaling, where OpenMP has enough work per step to beat serial.
 
 ## Project layout
 
 ```
 include/     Public APIs (advection, random walk, timing)
 src/         Solver implementations and CLI entry points
-scripts/     Benchmark runner and plotting
+scripts/     Benchmark, correctness checks, plotting
 docs/        Case-study write-up (methods, architecture, results)
-results/     Generated data and timings.csv
+results/     Generated data, timings, scaling CSVs
 figures/     Generated plots
+.github/     CI smoke workflow
 ```
 
-Details on numerics, parallelism constraints, and design choices: [docs/case-study.md](docs/case-study.md).
+Details: [docs/case-study.md](docs/case-study.md).
 
 ## Requirements
 
@@ -38,31 +42,30 @@ Details on numerics, parallelism constraints, and design choices: [docs/case-stu
 
 ```bash
 make
-./scripts/run_benchmark.sh
+./scripts/run_benchmark.sh          # full fidelity + scaling study
+./scripts/run_benchmark.sh --smoke  # short CI-friendly run
 ```
 
 Or invoke solvers directly:
 
 ```bash
-./bin/advection            # serial
-./bin/advection --omp      # OpenMP spatial update
-./bin/walk                 # serial ensemble
-./bin/walk --omp           # OpenMP ensemble
+./bin/advection                       # serial fidelity defaults
+./bin/advection --omp                 # OpenMP spatial update
+./bin/advection --points 200000 --steps 400 --no-snapshots --omp
+./bin/walk --omp --walkers 500000
 ```
 
-Useful flags: `--points`, `--steps`, `--walkers`, `--barrier`, `--seed`, `--out`.
-
-Thread count follows the usual OpenMP environment variable:
+Useful flags: `--points`, `--steps`, `--dt`, `--walkers`, `--barrier`, `--seed`, `--out`, `--no-snapshots`.
 
 ```bash
-OMP_NUM_THREADS=4 ./scripts/run_benchmark.sh
+MAX_THREADS=8 ./scripts/run_benchmark.sh
 ```
 
-Outputs land in `results/` (field snapshots, walk samples, `timings.csv`) and `figures/` (`advection.png`, `random_walk.png`).
+Outputs: `results/timings.csv`, `results/scaling.csv`, snapshots, and figures under `figures/`.
 
 ## Sample outputs
 
-Pulse transport under the upwind scheme (serial vs OpenMP frames agree to machine precision on this grid):
+Pulse transport (serial vs OpenMP agree to machine precision):
 
 ![Advection serial vs OpenMP](figures/advection.png)
 
@@ -70,16 +73,21 @@ Hitting-time histograms for \(5\times10^5\) walkers:
 
 ![Random walk serial vs OpenMP](figures/random_walk.png)
 
-Example wall-clock comparison on 4 threads (`results/timings.example.csv`): random-walk ensemble ≈ **4×** faster with OpenMP; advection at \(N_x=1000\) shows thread overhead dominating — see the [case study](docs/case-study.md).
+Strong scaling (speedup / efficiency):
+
+![Strong scaling](figures/scaling.png)
+
+Example numbers are committed in `results/timings.example.csv` and `results/scaling.example.csv`.
 
 ## What this demonstrates
 
 - Separating numerical cores from CLI / I/O
 - Correct OpenMP placement (no parallelization of dependent time loops)
 - Thread-safe Monte Carlo seeding with `erand48`
-- Double-buffered PDE integration instead of a full space–time tensor
-- Lightweight benchmarking suitable for a portfolio narrative
+- Double-buffered PDE integration and I/O-excluded wall timing
+- When parallelism helps (large advection / walkers) vs when overhead wins (tiny grids)
+- Reproducible smoke CI on every push
 
 ## License
 
-Personal portfolio project. Use and adaptation welcome with attribution.
+[MIT](LICENSE) © Juan David Prada Malagon

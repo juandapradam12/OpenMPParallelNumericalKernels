@@ -154,13 +154,16 @@ double advection_run(AdvectionState *state,
         }
     }
 
+    /* Time only the numerical update; snapshot I/O is excluded. */
     t0 = wall_time_sec();
     for (step = 1; step <= cfg->n_steps; step++) {
         advection_step(state, use_omp);
         if (snapshot_prefix && should_snapshot(step, snapshot_steps, n_snapshots)) {
+            t1 = wall_time_sec();
             if (write_snapshot(snapshot_prefix, step, state->u, state->n_points) != 0) {
                 fprintf(stderr, "error: failed to write snapshot at step %d\n", step);
             }
+            t0 += wall_time_sec() - t1;
         }
     }
     t1 = wall_time_sec();
