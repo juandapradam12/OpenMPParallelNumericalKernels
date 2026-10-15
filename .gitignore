@@ -1,0 +1,27 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.x
+*_c
+
+# Runtime outputs
+results/*.dat
+results/*.csv
+results/*.json
+!results/.gitkeep
+!results/timings.example.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*~
+*.swp

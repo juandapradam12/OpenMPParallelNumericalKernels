@@ -1,0 +1,5 @@
+problem,mode,threads,metric,value
+advection,serial,1,wall_seconds,0.001079
+advection,omp,4,wall_seconds,0.001943
+random_walk,serial,1,wall_seconds,0.683285
+random_walk,omp,4,wall_seconds,0.172661
